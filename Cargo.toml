@@ -1,13 +1,14 @@
 [package]
 name = "fetch-pdf-corpus"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.88"
 description = "Rebuild a PDF test corpus from public sources, byte for byte, each file checked by sha256"
 license = "MIT OR Apache-2.0"
-publish = false
 include = ["/src/**", "/locks/*.tsv", "/README.md", "/LICENSE-*"]
 repository = "https://github.com/sheaf-pdf/fetch-pdf-corpus"
+keywords = ["pdf", "corpus", "test-data", "sha256", "fetch"]
+categories = ["command-line-utilities", "development-tools::testing"]
 
 [dependencies]
 anyhow = "1.0.104"

@@ -14,7 +14,9 @@ against: a fetched folder is what sheaf's corpus tests read from
 ## Fetching
 
 ```sh
-cargo install --locked --git https://github.com/sheaf-pdf/fetch-pdf-corpus --tag v0.1.0
+cargo install --locked fetch-pdf-corpus
+# or from the tagged source:
+cargo install --locked --git https://github.com/sheaf-pdf/fetch-pdf-corpus --tag v0.1.1
 
 fetch-pdf-corpus fetch --out pdf-corpus             # every collection but pool
 fetch-pdf-corpus fetch --out pdf-corpus forms scans # some of them
@@ -99,3 +101,10 @@ and left out.
 
 `scripts/sheaf-pool-picks.py` makes `lists/sheaf-pool.txt` from a full
 pool, as sheaf's tests pick.
+
+## Releasing
+
+An installed binary takes `corpus/` from GitHub at the tag of its own
+version, so a change to `locks/` or `corpus/` needs a new version: bump
+it in `Cargo.toml`, commit, tag the commit `v<version>`, and push the
+tag before publishing.
