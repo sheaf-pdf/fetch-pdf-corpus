@@ -99,8 +99,12 @@ directory, everything else by downloading it. `corpus/` is rewritten
 with the collection's `repo` files. A file with no source is reported
 and left out.
 
-`scripts/sheaf-pool-picks.py` makes `lists/sheaf-pool.txt` from a full
-pool, as sheaf's tests pick.
+`lists/sheaf-pool.txt` is what sheaf's tests pick from a full pool:
+
+```sh
+cargo run --release -- pool-picks --from ../pdf-corpus \
+    --sample ../sheaf/bench/pool-sample.txt > lists/sheaf-pool.txt
+```
 
 ## Releasing
 

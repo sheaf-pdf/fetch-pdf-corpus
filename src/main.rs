@@ -9,6 +9,7 @@ mod http;
 mod lock;
 mod make_lock;
 mod pdfium;
+mod pool_picks;
 mod sets;
 mod source;
 mod zip;
@@ -64,6 +65,16 @@ enum Command {
         pool_list: Option<PathBuf>,
         collections: Vec<String>,
     },
+    /// Print the pool files sheaf's corpus tests read, a path a line,
+    /// from a corpus with its full pool: `lists/sheaf-pool.txt`.
+    PoolPicks {
+        /// The local corpus.
+        #[arg(long)]
+        from: PathBuf,
+        /// sheaf's `bench/pool-sample.txt`.
+        #[arg(long)]
+        sample: PathBuf,
+    },
 }
 
 /// The named collections, or every one a plain fetch takes.
@@ -111,6 +122,12 @@ fn run(cli: Cli) -> Result<bool> {
             pool_list.as_deref(),
             cli.jobs,
         ),
+        Command::PoolPicks { from, sample } => {
+            for path in pool_picks::pool_picks(&from, &sample)? {
+                println!("{path}");
+            }
+            Ok(true)
+        }
     }
 }
 
