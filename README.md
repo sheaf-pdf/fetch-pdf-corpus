@@ -14,13 +14,23 @@ against: a fetched folder is what sheaf's corpus tests read from
 ## Fetching
 
 ```sh
-cargo run --release -- fetch --out ../pdf-corpus             # every collection but pool
-cargo run --release -- fetch --out ../pdf-corpus forms scans # some of them
-cargo run --release -- verify --dir ../pdf-corpus            # check a folder
+cargo install --locked --git https://github.com/sheaf-pdf/fetch-pdf-corpus --tag v0.1.0
+
+fetch-pdf-corpus fetch --out pdf-corpus             # every collection but pool
+fetch-pdf-corpus fetch --out pdf-corpus forms scans # some of them
+fetch-pdf-corpus verify --dir pdf-corpus            # check a folder
 ```
 
-Files already there and right are kept, so a rerun resumes. `--jobs`
-sets how many files are fetched at once (16).
+It needs Rust 1.88 or later. The locks are built into the binary;
+the few files this repository holds itself (`corpus/`) come from GitHub
+at the binary's version tag. Files already there and right are kept, so
+a rerun resumes. `--jobs` sets how many files are fetched at once (16).
+From a checkout, `cargo run --release -- --data . fetch …` uses its
+`locks/` and `corpus/` instead.
+
+For sheaf, fetch into `pdf-corpus` beside your sheaf checkout, or point
+`$SHEAF_CORPUS` at it. `parsing/unsafe/` holds files from UNSAFE-DOCS,
+made to break parsers: read them as bytes, or in a process you can lose.
 
 | Collection | Files | Size | What |
 |---|---:|---:|---|
@@ -74,7 +84,7 @@ tried in order: room for mirrors.
 For the corpus's keepers, from a local copy of it:
 
 ```sh
-cargo run --release -- lock --from ../pdf-corpus \
+cargo run --release -- --data . lock --from ../pdf-corpus \
     --pool-list lists/sheaf-pool.txt meta forms scans signatures conformance parsing pool
 ```
 

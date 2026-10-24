@@ -1,11 +1,10 @@
 //! A file's bytes from one of its sources, and checking them.
 
-use std::path::Path;
-
-use anyhow::{Context, Result, bail};
+use anyhow::{Result, bail};
 use base64::Engine as _;
 use sha2::{Digest, Sha256};
 
+use crate::data::Data;
 use crate::http::Http;
 use crate::lock::{Row, Source};
 use crate::{archive, pdfium, zip};
@@ -16,12 +15,9 @@ pub fn sha256(bytes: &[u8]) -> String {
 
 /// The bytes `row`'s source gives. An archive is read whole for its one
 /// member; `fetch` batches a set's members to read each archive once.
-pub fn bytes(http: &Http, data: &Path, row: &Row) -> Result<Vec<u8>> {
+pub fn bytes(http: &Http, data: &Data, row: &Row) -> Result<Vec<u8>> {
     match &row.source {
-        Source::Repo => {
-            let path = data.join("corpus").join(&row.path);
-            std::fs::read(&path).with_context(|| format!("{}", path.display()))
-        }
+        Source::Repo => data.repo_file(http, &row.path),
         Source::Get { url, base64 } => {
             let body = http.get(url)?;
             if *base64 {

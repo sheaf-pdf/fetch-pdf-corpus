@@ -3,6 +3,7 @@
 //! repository, and is checked against its sha256 before it's written.
 
 mod archive;
+mod data;
 mod fetch;
 mod http;
 mod lock;
@@ -12,18 +13,22 @@ mod sets;
 mod source;
 mod zip;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::ExitCode;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
+
+use crate::data::Data;
 
 #[derive(Parser)]
 #[command(version, about)]
 struct Cli {
-    /// This repository: its `locks/` and `corpus/`.
-    #[arg(long, global = true, default_value = env!("CARGO_MANIFEST_DIR"))]
-    data: PathBuf,
+    /// A checkout of this repository, whose `locks/` and `corpus/` to
+    /// use. Without one, the locks built in, and `corpus/` from GitHub
+    /// at this version's tag.
+    #[arg(long, global = true)]
+    data: Option<PathBuf>,
     /// Files fetched or checked at once.
     #[arg(long, global = true, default_value_t = 16)]
     jobs: usize,
@@ -80,7 +85,11 @@ fn collections(named: Vec<String>) -> Result<Vec<String>> {
 }
 
 fn run(cli: Cli) -> Result<bool> {
-    let data: &Path = &cli.data;
+    let data = match cli.data {
+        Some(dir) => Data::Checkout(dir),
+        None => Data::BuiltIn,
+    };
+    let data = &data;
     match cli.command {
         Command::Fetch {
             out,
@@ -95,7 +104,8 @@ fn run(cli: Cli) -> Result<bool> {
             pool_list,
             collections: named,
         } => make_lock::lock(
-            data,
+            data.checkout()
+                .context("lock writes a checkout's locks/ and corpus/: give it --data")?,
             &from,
             &collections(named)?,
             pool_list.as_deref(),

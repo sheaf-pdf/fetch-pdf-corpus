@@ -9,16 +9,17 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use rayon::prelude::*;
 
+use crate::data::Data;
 use crate::http::Http;
-use crate::lock::{self, Row, Source};
+use crate::lock::{Row, Source};
 use crate::source::{self, sha256};
 use crate::{archive, pdfium};
 
 /// The rows of `collections`' locks, grouped by path, sources in order.
-pub fn load(data: &Path, collections: &[String]) -> Result<BTreeMap<String, Vec<Row>>> {
+pub fn load(data: &Data, collections: &[String]) -> Result<BTreeMap<String, Vec<Row>>> {
     let mut by_path: BTreeMap<String, Vec<Row>> = BTreeMap::new();
     for collection in collections {
-        for row in lock::read(&data.join("locks").join(format!("{collection}.tsv")))? {
+        for row in data.rows(collection)? {
             by_path.entry(row.path.clone()).or_default().push(row);
         }
     }
@@ -91,7 +92,7 @@ fn deliver(out: &Path, content: &Content, bytes: &[u8], progress: &Progress) -> 
 /// `content` from its sources after the first, which failed with `first`.
 fn fall_back(
     http: &Http,
-    data: &Path,
+    data: &Data,
     out: &Path,
     content: &Content,
     first: anyhow::Error,
@@ -110,7 +111,7 @@ fn fall_back(
     }
 }
 
-pub fn fetch(data: &Path, out: &Path, collections: &[String], jobs: usize) -> Result<bool> {
+pub fn fetch(data: &Data, out: &Path, collections: &[String], jobs: usize) -> Result<bool> {
     let by_path = load(data, collections)?;
     let total = by_path.len();
     let pool = rayon::ThreadPoolBuilder::new().num_threads(jobs).build()?;
@@ -225,7 +226,7 @@ fn todo_count(contents: &BTreeMap<&str, Content>) -> usize {
 /// The members `members` want from the archive at `url`, read once.
 fn fetch_archive(
     http: &Http,
-    data: &Path,
+    data: &Data,
     out: &Path,
     url: &str,
     members: &[&Content],
@@ -306,7 +307,7 @@ fn fetch_archive(
 /// Checks `dir` against `collections`' locks: every file there and
 /// right, and none the locks don't name (outside `.git` and, unless the
 /// pool is among them, `pool/`).
-pub fn verify(data: &Path, dir: &Path, collections: &[String], jobs: usize) -> Result<bool> {
+pub fn verify(data: &Data, dir: &Path, collections: &[String], jobs: usize) -> Result<bool> {
     let by_path = load(data, collections)?;
     let pool = rayon::ThreadPoolBuilder::new().num_threads(jobs).build()?;
     let wrong: Vec<(String, &'static str)> = pool.install(|| {

@@ -63,18 +63,15 @@ pub const COLLECTIONS: [(&str, bool); 7] = [
     ("pool", false),
 ];
 
-pub fn read(path: &Path) -> Result<Vec<Row>> {
-    let text = std::fs::read_to_string(path).with_context(|| format!("{}", path.display()))?;
+/// The rows of a lock file's `text`; `name` says which, in errors.
+pub fn parse_text(name: &str, text: &str) -> Result<Vec<Row>> {
     let mut lines = text.lines();
     if lines.next() != Some(HEADER) {
-        bail!(
-            "{}: not a lock file (its header isn't `{HEADER}`)",
-            path.display()
-        );
+        bail!("{name}: not a lock file (its header isn't `{HEADER}`)");
     }
     lines
         .enumerate()
-        .map(|(i, line)| parse(line).with_context(|| format!("{} line {}", path.display(), i + 2)))
+        .map(|(i, line)| parse(line).with_context(|| format!("{name} line {}", i + 2)))
         .collect()
 }
 
