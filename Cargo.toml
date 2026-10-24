@@ -1,0 +1,25 @@
+[package]
+name = "fetch-pdf-corpus"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Rebuild a PDF test corpus from public sources, byte for byte, each file checked by sha256"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+anyhow = "1.0.104"
+base64 = "0.23.1"
+clap = { version = "4.6.7", features = ["derive"] }
+crc32fast = "1.5.2"
+csv = "1.4.0"
+flate2 = "1.1.10"
+hex = "0.4.3"
+rayon = "1.12.0"
+sha2 = "0.11.0"
+tar = "0.4.46"
+# No transparent gzip: every body is taken as the server's bytes.
+ureq = { version = "3.4.2", default-features = false, features = ["rustls"] }
+
+[profile.release]
+debug = "line-tables-only"
